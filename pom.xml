@@ -1,0 +1,217 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<prerequisites>
+		<maven>3.0.4</maven>
+	</prerequisites>
+
+	<groupId>jp.co.cyberagent.hive</groupId>
+	<artifactId>hive-jq-udtf-v3</artifactId>
+	<version>3.0.0</version>
+	<packaging>jar</packaging>
+	<name>${project.artifactId}</name>
+	<description>jq for Apache Hive</description>
+	<url>https://github.com/CyberAgent/hive-jq-udtf</url>
+
+	<scm>
+		<connection>scm:git:git@github.com:CyberAgent/hive-jq-udtf.git</connection>
+		<developerConnection>scm:git:git@github.com:CyberAgent/hive-jq-udtf.git</developerConnection>
+		<url>git@github.com:CyberAgent/hive-jq-udtf.git</url>
+	</scm>
+
+	<developers>
+		<developer>
+			<name>Eiichi Sato</name>
+			<email>sato_eiichi@cyberagent.co.jp</email>
+			<organization>CyberAgent, Inc.</organization>
+			<organizationUrl>https://www.cyberagent.co.jp/en/</organizationUrl>
+		</developer>
+	</developers>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.version.major>3</project.version.major>
+		<org.apache.hive-version>2.1.0</org.apache.hive-version>
+		<net.thisptr.jackson-jq-version>0.0.7</net.thisptr.jackson-jq-version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.hive</groupId>
+			<artifactId>hive-exec</artifactId>
+			<version>${org.apache.hive-version}</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<!-- As reported in CALCITE-1110, calcite-avatica contains their own 
+						copy of com.fasterxml.jackson.* without relocating the classes, which conflicts 
+						with jackson-databind 2.7.0 while developing and running tests. This does 
+						not affect deployments because we relocate jackson-* packages before shipping 
+						the final plugin jar, avoiding the conflict. -->
+					<groupId>org.apache.calcite</groupId>
+					<artifactId>calcite-avatica</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>net.thisptr</groupId>
+			<artifactId>jackson-jq</artifactId>
+			<version>${net.thisptr.jackson-jq-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.thisptr</groupId>
+			<artifactId>jackson-jq-extra</artifactId>
+			<version>${net.thisptr.jackson-jq-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<relocations>
+								<relocation>
+									<pattern>^jp/co/cyberagent/hive/udtf/jsonquery/(?!v${project.version.major})</pattern>
+									<shadedPattern>jp/co/cyberagent/hive/udtf/jsonquery/v${project.version.major}/</shadedPattern>
+									<rawString>true</rawString>
+								</relocation>
+								<relocation>
+									<pattern>net.thisptr.jackson.jq</pattern>
+									<shadedPattern>jp.co.cyberagent.hive.udtf.jsonquery.v${project.version.major}.shade.net.thisptr.jackson.jq</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>com.fasterxml.jackson</pattern>
+									<shadedPattern>jp.co.cyberagent.hive.udtf.jsonquery.v${project.version.major}.shade.com.fasterxml.jackson</shadedPattern>
+								</relocation>
+							</relocations>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>jq.json</resource>
+								</transformer>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>META-INF/LICENSE</resource>
+								</transformer>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>META-INF/NOTICE</resource>
+								</transformer>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+							</transformers>
+							<minimizeJar>false</minimizeJar>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.6.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<compilerArgument>-Xlint:all</compilerArgument>
+					<showWarnings>true</showWarnings>
+					<showDeprecation>true</showDeprecation>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.3</version>
+				<configuration>
+					<pushChanges>false</pushChanges>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.0.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.4</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.8</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>ossrh</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>false</autoReleaseAfterClose>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>

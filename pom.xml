@@ -47,6 +47,7 @@
 		<project.version.major>3</project.version.major>
 		<org.apache.hive-version>2.1.0</org.apache.hive-version>
 		<net.thisptr.jackson-jq-version>0.0.7</net.thisptr.jackson-jq-version>
+		<org.antlr.antlr-version>3.5.2</org.antlr.antlr-version>
 	</properties>
 
 	<dependencies>
@@ -76,6 +77,11 @@
 			<groupId>net.thisptr</groupId>
 			<artifactId>jackson-jq-extra</artifactId>
 			<version>${net.thisptr.jackson-jq-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.antlr</groupId>
+			<artifactId>antlr</artifactId>
+			<version>${org.antlr.antlr-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

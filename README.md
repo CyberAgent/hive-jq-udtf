@@ -191,3 +191,4 @@ Copyright (c) CyberAgent, Inc. All Rights Reserved.
 [The Apache License, Version 2.0](LICENSE)
 
 [1]: https://cwiki.apache.org/confluence/display/Hive/LanguageManual+LateralView
+
